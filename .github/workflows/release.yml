@@ -22,21 +22,18 @@ jobs:
       - name: Create release package
         run: |
           mkdir -p release/aichatanchor
-          
+
           # Copy core extension files
           cp manifest.json release/aichatanchor/
           cp background.js release/aichatanchor/
           cp README.md release/aichatanchor/
-          
+
           # Copy directories
           cp -r content-scripts release/aichatanchor/
           cp -r popup release/aichatanchor/
           cp -r styles release/aichatanchor/
-          
-          # Copy icons (only the SVG, not dev files)
-          mkdir -p release/aichatanchor/icons
-          cp icons/icon.svg release/aichatanchor/icons/
-          
+          cp -r icons release/aichatanchor/
+
           # Create ZIP
           cd release
           zip -r ../aichatanchor-${{ steps.version.outputs.VERSION }}.zip aichatanchor

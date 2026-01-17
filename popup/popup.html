@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Chat Anchor</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="popup-container">
+    <header class="popup-header">
+      <div class="popup-title">
+        <svg class="popup-logo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="5" r="3"/>
+          <line x1="12" y1="8" x2="12" y2="20"/>
+        </svg>
+        <h1>AI Chat Anchor</h1>
+      </div>
+    </header>
+
+    <main class="popup-content">
+      <div id="pins-list" class="pins-list">
+        <!-- Pins will be populated here -->
+      </div>
+
+      <div id="empty-state" class="empty-state hidden">
+        <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <circle cx="12" cy="5" r="3"/>
+          <line x1="12" y1="8" x2="12" y2="20"/>
+        </svg>
+        <p class="empty-title">No pins yet</p>
+        <p class="empty-description">Pin important responses in Claude, ChatGPT, or Gemini to quickly navigate back to them.</p>
+      </div>
+    </main>
+
+    <footer class="popup-footer">
+      <button id="clear-all" class="btn-clear hidden">Clear All Pins</button>
+    </footer>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
