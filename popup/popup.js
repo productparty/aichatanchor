@@ -74,17 +74,17 @@
   function renderPins(pins) {
     const listEl = document.getElementById('pins-list');
     const emptyEl = document.getElementById('empty-state');
-    const clearBtn = document.getElementById('clear-all');
+    const footerActions = document.getElementById('footer-actions');
 
     if (pins.length === 0) {
       listEl.innerHTML = '';
       emptyEl.classList.remove('hidden');
-      clearBtn.classList.add('hidden');
+      footerActions.classList.add('hidden');
       return;
     }
 
     emptyEl.classList.add('hidden');
-    clearBtn.classList.remove('hidden');
+    footerActions.classList.remove('hidden');
 
     const grouped = groupPinsByProduct(pins);
     let html = '';
@@ -197,6 +197,134 @@
     }
   }
 
+  async function handleExport() {
+    const allPins = await loadAllPins();
+    const pins = flattenPins(allPins);
+
+    if (pins.length === 0) {
+      alert('No pins to export.');
+      return;
+    }
+
+    const exportData = {
+      version: '1.0',
+      exportedAt: new Date().toISOString(),
+      pins: allPins
+    };
+
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `aichatanchor-pins-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  function handleImportClick() {
+    document.getElementById('import-file').click();
+  }
+
+  async function handleImportFile(event) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const text = await file.text();
+      const data = JSON.parse(text);
+
+      // Validate structure
+      if (!data.pins || typeof data.pins !== 'object') {
+        throw new Error('Invalid file format: missing pins data');
+      }
+
+      // Validate pins structure
+      const validProducts = ['claude', 'chatgpt', 'gemini'];
+      for (const product of validProducts) {
+        if (data.pins[product] && typeof data.pins[product] !== 'object') {
+          throw new Error(`Invalid file format: invalid ${product} data`);
+        }
+      }
+
+      // Ask user how to handle import
+      const currentPins = await loadAllPins();
+      const currentCount = flattenPins(currentPins).length;
+      const importCount = flattenPins(data.pins).length;
+
+      let shouldMerge = false;
+      if (currentCount > 0) {
+        shouldMerge = confirm(
+          `You have ${currentCount} existing pin(s). Import ${importCount} pin(s)?\n\n` +
+          `Click OK to merge (keep both), or Cancel to replace all.`
+        );
+
+        if (!shouldMerge) {
+          const confirmReplace = confirm('Replace all existing pins? This cannot be undone.');
+          if (!confirmReplace) {
+            event.target.value = '';
+            return;
+          }
+        }
+      }
+
+      // Merge or replace
+      let newPins;
+      if (shouldMerge) {
+        newPins = mergePins(currentPins, data.pins);
+      } else {
+        newPins = {
+          claude: data.pins.claude || {},
+          chatgpt: data.pins.chatgpt || {},
+          gemini: data.pins.gemini || {}
+        };
+      }
+
+      await chrome.storage.local.set({ pins: newPins });
+
+      const finalCount = flattenPins(newPins).length;
+      alert(`Successfully imported! You now have ${finalCount} pin(s).`);
+
+      const pins = flattenPins(newPins);
+      renderPins(pins);
+    } catch (e) {
+      alert(`Import failed: ${e.message}`);
+    }
+
+    // Reset file input
+    event.target.value = '';
+  }
+
+  function mergePins(existing, imported) {
+    const merged = {
+      claude: { ...existing.claude },
+      chatgpt: { ...existing.chatgpt },
+      gemini: { ...existing.gemini }
+    };
+
+    for (const product of ['claude', 'chatgpt', 'gemini']) {
+      const importedProduct = imported[product] || {};
+
+      for (const chatId in importedProduct) {
+        if (!merged[product][chatId]) {
+          merged[product][chatId] = [];
+        }
+
+        const existingIds = new Set(merged[product][chatId].map(p => p.id));
+
+        for (const pin of importedProduct[chatId]) {
+          if (!existingIds.has(pin.id)) {
+            merged[product][chatId].push(pin);
+          }
+        }
+      }
+    }
+
+    return merged;
+  }
+
   // ============================================
   // UTILITIES
   // ============================================
@@ -227,8 +355,11 @@
     const pins = flattenPins(allPins);
     renderPins(pins);
 
-    // Set up clear button
+    // Set up footer buttons
     document.getElementById('clear-all').addEventListener('click', handleClearAll);
+    document.getElementById('export-pins').addEventListener('click', handleExport);
+    document.getElementById('import-pins').addEventListener('click', handleImportClick);
+    document.getElementById('import-file').addEventListener('change', handleImportFile);
 
     // Listen for storage changes
     chrome.storage.onChanged.addListener((changes) => {

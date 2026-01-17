@@ -29,6 +29,7 @@ AI Chat Anchor adds a simple pin button to AI responses. Click it, optionally ad
 - **Auto-numbered** pins per conversation (#1, #2, #3...)
 - **Inventory popup** showing all pins grouped by product and chat
 - **Jump to pin** — Opens the chat and scrolls right to that response
+- **Export/Import** — Back up your pins as JSON (no cloud needed)
 - **Privacy-first** — All data stays in your browser's local storage
 
 ## Supported Platforms
@@ -82,7 +83,7 @@ This extension:
 - Has no account or sign-up
 - Cannot read or store the actual content of responses
 
-Your pins are yours.
+Your pins are yours. Export them anytime as a JSON backup.
 
 ## Contributing
 
