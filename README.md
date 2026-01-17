@@ -11,7 +11,7 @@ You're deep into a conversation with Claude, ChatGPT, or Gemini. Somewhere aroun
 3. **Re-prompt**: "Hey, what was that thing you said earlier about..."
 4. **Give up** and start a new chat
 
-None of these are great. The irony of option 3 is real—you're burning tokens asking the AI to repeat itself because there's no way to navigate the conversation.
+None of these are great. The irony of option 3 is real—you're burning time or tokens asking the AI to repeat itself because there's no way to navigate the conversation.
 
 ## The Solution
 
