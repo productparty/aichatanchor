@@ -1,44 +1,66 @@
 {
-  "manifest_version": 3,
-  "name": "AI Chat Anchor",
-  "version": "1.0.0",
-  "description": "Pin valuable moments in LLM conversations. Quick navigation back to important responses across Claude, ChatGPT, and Gemini.",
-  "permissions": [
-    "storage",
-    "activeTab",
-    "tabs"
-  ],
-  "host_permissions": [
-    "https://claude.ai/*",
-    "https://chat.openai.com/*",
-    "https://chatgpt.com/*",
-    "https://gemini.google.com/*"
-  ],
-  "background": {
-    "service_worker": "background.js"
-  },
-  "content_scripts": [
-    {
-      "matches": ["https://claude.ai/*"],
-      "js": ["content-scripts/shared.js", "content-scripts/claude.js"],
-      "css": ["styles/pin-button.css"],
-      "run_at": "document_idle"
-    },
-    {
-      "matches": ["https://chat.openai.com/*", "https://chatgpt.com/*"],
-      "js": ["content-scripts/shared.js", "content-scripts/chatgpt.js"],
-      "css": ["styles/pin-button.css"],
-      "run_at": "document_idle"
-    },
-    {
-      "matches": ["https://gemini.google.com/*"],
-      "js": ["content-scripts/shared.js", "content-scripts/gemini.js"],
-      "css": ["styles/pin-button.css"],
-      "run_at": "document_idle"
-    }
-  ],
-  "action": {
-    "default_popup": "popup/popup.html",
-    "default_title": "AI Chat Anchor"
-  }
+    "manifest_version":  3,
+    "name":  "AI Chat Anchor",
+    "version":  "1.0.1",
+    "description":  "Pin valuable moments in LLM conversations. Quick navigation back to important responses across Claude, ChatGPT, and Gemini.",
+    "permissions":  [
+                        "storage",
+                        "activeTab",
+                        "tabs"
+                    ],
+    "host_permissions":  [
+                             "https://claude.ai/*",
+                             "https://chat.openai.com/*",
+                             "https://chatgpt.com/*",
+                             "https://gemini.google.com/*"
+                         ],
+    "background":  {
+                       "service_worker":  "background.js"
+                   },
+    "content_scripts":  [
+                            {
+                                "matches":  [
+                                                "https://claude.ai/*"
+                                            ],
+                                "js":  [
+                                           "content-scripts/shared.js",
+                                           "content-scripts/claude.js"
+                                       ],
+                                "css":  [
+                                            "styles/pin-button.css"
+                                        ],
+                                "run_at":  "document_idle"
+                            },
+                            {
+                                "matches":  [
+                                                "https://chat.openai.com/*",
+                                                "https://chatgpt.com/*"
+                                            ],
+                                "js":  [
+                                           "content-scripts/shared.js",
+                                           "content-scripts/chatgpt.js"
+                                       ],
+                                "css":  [
+                                            "styles/pin-button.css"
+                                        ],
+                                "run_at":  "document_idle"
+                            },
+                            {
+                                "matches":  [
+                                                "https://gemini.google.com/*"
+                                            ],
+                                "js":  [
+                                           "content-scripts/shared.js",
+                                           "content-scripts/gemini.js"
+                                       ],
+                                "css":  [
+                                            "styles/pin-button.css"
+                                        ],
+                                "run_at":  "document_idle"
+                            }
+                        ],
+    "action":  {
+                   "default_popup":  "popup/popup.html",
+                   "default_title":  "AI Chat Anchor"
+               }
 }
