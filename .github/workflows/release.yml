@@ -1,0 +1,48 @@
+﻿name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Extract version from tag
+        id: version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
+      - name: Create release package
+        run: |
+          mkdir -p release/aichatanchor
+          
+          # Copy core extension files
+          cp manifest.json release/aichatanchor/
+          cp background.js release/aichatanchor/
+          cp README.md release/aichatanchor/
+          
+          # Copy directories
+          cp -r content-scripts release/aichatanchor/
+          cp -r popup release/aichatanchor/
+          cp -r styles release/aichatanchor/
+          
+          # Copy icons (only the SVG, not dev files)
+          mkdir -p release/aichatanchor/icons
+          cp icons/icon.svg release/aichatanchor/icons/
+          
+          # Create ZIP
+          cd release
+          zip -r ../aichatanchor-${{ steps.version.outputs.VERSION }}.zip aichatanchor
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: aichatanchor-${{ steps.version.outputs.VERSION }}.zip
+          generate_release_notes: true
