@@ -21,24 +21,24 @@ jobs:
 
       - name: Create release package
         run: |
-          mkdir -p release/aichatanchor
+          mkdir -p release
 
           # Copy core extension files
-          cp manifest.json release/aichatanchor/
-          cp background.js release/aichatanchor/
-          cp README.md release/aichatanchor/
+          cp manifest.json release/
+          cp background.js release/
+          cp README.md release/
 
           # Copy directories
-          cp -r content-scripts release/aichatanchor/
-          cp -r popup release/aichatanchor/
-          cp -r styles release/aichatanchor/
-          cp -r icons release/aichatanchor/
-          cp -r scripts release/aichatanchor/
-          cp -r pages release/aichatanchor/
+          cp -r content-scripts release/
+          cp -r popup release/
+          cp -r styles release/
+          cp -r icons release/
+          cp -r scripts release/
+          cp -r pages release/
 
-          # Create ZIP
+          # Create ZIP (Chrome Web Store compatible - files at root)
           cd release
-          zip -r ../aichatanchor-${{ steps.version.outputs.VERSION }}.zip aichatanchor
+          zip -r ../aichatanchor-${{ steps.version.outputs.VERSION }}.zip .
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
