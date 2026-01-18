@@ -1,7 +1,7 @@
 {
     "manifest_version":  3,
     "name":  "AI Chat Anchor",
-    "version":  "1.0.3",
+    "version":  "1.0.4",
     "description":  "Pin valuable moments in LLM conversations. Quick navigation back to important responses across Claude, ChatGPT, and Gemini.",
     "permissions":  [
                         "storage",
@@ -23,6 +23,7 @@
                                                 "https://claude.ai/*"
                                             ],
                                 "js":  [
+                                           "scripts/storage.js",
                                            "content-scripts/shared.js",
                                            "content-scripts/claude.js"
                                        ],
@@ -37,6 +38,7 @@
                                                 "https://chatgpt.com/*"
                                             ],
                                 "js":  [
+                                           "scripts/storage.js",
                                            "content-scripts/shared.js",
                                            "content-scripts/chatgpt.js"
                                        ],
@@ -50,6 +52,7 @@
                                                 "https://gemini.google.com/*"
                                             ],
                                 "js":  [
+                                           "scripts/storage.js",
                                            "content-scripts/shared.js",
                                            "content-scripts/gemini.js"
                                        ],

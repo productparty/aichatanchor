@@ -1,20 +1,35 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>AI Chat Anchor</title>
   <link rel="stylesheet" href="popup.css">
 </head>
+
 <body>
   <div class="popup-container">
     <header class="popup-header">
-      <div class="popup-title">
-        <svg class="popup-logo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="12" cy="5" r="3"/>
-          <line x1="12" y1="8" x2="12" y2="20"/>
-        </svg>
-        <h1>AI Chat Anchor</h1>
+      <div class="header-top">
+        <div class="popup-title">
+          <svg class="popup-logo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="5" r="3" />
+            <line x1="12" y1="8" x2="12" y2="20" />
+          </svg>
+          <h1>Anchor</h1>
+        </div>
+        <button id="open-dashboard" class="btn-icon" title="Open Dashboard">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="7" height="7" />
+            <rect x="14" y="3" width="7" height="7" />
+            <rect x="14" y="14" width="7" height="7" />
+            <rect x="3" y="14" width="7" height="7" />
+          </svg>
+        </button>
+      </div>
+      <div class="header-search">
+        <input type="search" id="quick-search" placeholder="Search recent...">
       </div>
     </header>
 
@@ -25,11 +40,12 @@
 
       <div id="empty-state" class="empty-state hidden">
         <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-          <circle cx="12" cy="5" r="3"/>
-          <line x1="12" y1="8" x2="12" y2="20"/>
+          <circle cx="12" cy="5" r="3" />
+          <line x1="12" y1="8" x2="12" y2="20" />
         </svg>
         <p class="empty-title">No pins yet</p>
-        <p class="empty-description">Pin important responses in Claude, ChatGPT, or Gemini to quickly navigate back to them.</p>
+        <p class="empty-description">Pin important responses in Claude, ChatGPT, or Gemini to quickly navigate back to
+          them.</p>
       </div>
     </main>
 
@@ -37,24 +53,24 @@
       <div class="footer-actions hidden" id="footer-actions">
         <button id="export-pins" class="btn-action" title="Export pins as JSON">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-            <polyline points="7 10 12 15 17 10"/>
-            <line x1="12" y1="15" x2="12" y2="3"/>
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+            <polyline points="7 10 12 15 17 10" />
+            <line x1="12" y1="15" x2="12" y2="3" />
           </svg>
           Export
         </button>
         <button id="import-pins" class="btn-action" title="Import pins from JSON">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-            <polyline points="17 8 12 3 7 8"/>
-            <line x1="12" y1="3" x2="12" y2="15"/>
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+            <polyline points="17 8 12 3 7 8" />
+            <line x1="12" y1="3" x2="12" y2="15" />
           </svg>
           Import
         </button>
         <button id="clear-all" class="btn-action btn-danger" title="Delete all pins">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polyline points="3 6 5 6 21 6"/>
-            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+            <polyline points="3 6 5 6 21 6" />
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
           </svg>
           Clear
         </button>
@@ -63,6 +79,8 @@
     </footer>
   </div>
 
+  <script src="../scripts/storage.js"></script>
   <script src="popup.js"></script>
 </body>
+
 </html>

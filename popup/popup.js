@@ -3,7 +3,7 @@
  * Manages the extension popup UI and pin navigation
  */
 
-(function() {
+(function () {
   'use strict';
 
   const PRODUCT_LABELS = {
@@ -18,52 +18,40 @@
     gemini: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>`
   };
 
+  // State
+  let allPins = [];
+  let searchQuery = '';
+
   // ============================================
   // DATA LOADING
   // ============================================
 
-  async function loadAllPins() {
-    const result = await chrome.storage.local.get('pins');
-    return result.pins || { claude: {}, chatgpt: {}, gemini: {} };
+  async function loadData() {
+    // Use shared storage module
+    const rawData = await window.PinStorage.getAll();
+    allPins = flattenPins(rawData);
+    renderPins();
   }
 
-  function flattenPins(allPins) {
-    const flattened = [];
-
-    for (const product of ['claude', 'chatgpt', 'gemini']) {
-      const productPins = allPins[product] || {};
-
-      for (const chatId in productPins) {
-        const chatPins = productPins[chatId] || [];
-        chatPins.forEach(pin => {
-          flattened.push({
-            ...pin,
-            product,
-            chatId
-          });
+  function flattenPins(rawData) {
+    const flat = [];
+    ['claude', 'chatgpt', 'gemini'].forEach(product => {
+      const chatMap = rawData[product] || {};
+      Object.keys(chatMap).forEach(chatId => {
+        chatMap[chatId].forEach(pin => {
+          flat.push({ ...pin, product, chatId });
         });
-      }
-    }
-
-    // Sort by creation time, newest first
-    flattened.sort((a, b) => b.createdAt - a.createdAt);
-
-    return flattened;
+      });
+    });
+    // Sort Newest -> Oldest
+    return flat.sort((a, b) => b.createdAt - a.createdAt);
   }
 
   function groupPinsByProduct(pins) {
-    const grouped = {
-      claude: [],
-      chatgpt: [],
-      gemini: []
-    };
-
+    const grouped = { claude: [], chatgpt: [], gemini: [] };
     pins.forEach(pin => {
-      if (grouped[pin.product]) {
-        grouped[pin.product].push(pin);
-      }
+      if (grouped[pin.product]) grouped[pin.product].push(pin);
     });
-
     return grouped;
   }
 
@@ -71,22 +59,54 @@
   // UI RENDERING
   // ============================================
 
-  function renderPins(pins) {
+  function renderPins() {
     const listEl = document.getElementById('pins-list');
     const emptyEl = document.getElementById('empty-state');
     const footerActions = document.getElementById('footer-actions');
 
-    if (pins.length === 0) {
+    // Filter by search query
+    let displayPins = allPins;
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      displayPins = allPins.filter(pin => {
+        const text = [
+          pin.label,
+          pin.chatTitle,
+          (pin.tags || []).join(' ')
+        ].join(' ').toLowerCase();
+        return text.includes(q);
+      });
+    }
+
+    // Limit to recent 20 if no search
+    if (!searchQuery) {
+      displayPins = displayPins.slice(0, 20);
+    }
+
+    if (displayPins.length === 0) {
       listEl.innerHTML = '';
+      if (allPins.length === 0) {
+        // No pins at all
+        emptyEl.querySelector('.empty-title').textContent = 'No pins yet';
+        emptyEl.querySelector('.empty-description').textContent = 'Pin important responses in Claude, ChatGPT, or Gemini.';
+      } else {
+        // No matches found
+        emptyEl.querySelector('.empty-title').textContent = 'No matches found';
+        emptyEl.querySelector('.empty-description').textContent = 'Try a different search term.';
+      }
       emptyEl.classList.remove('hidden');
-      footerActions.classList.add('hidden');
       return;
     }
 
     emptyEl.classList.add('hidden');
-    footerActions.classList.remove('hidden');
+    // We can keep footer actions hidden or modify them. 
+    // For now, let's just keep them but maybe simplify?
+    // Actually, "Export/Import/Clear" is better in Dashboard. 
+    // Let's hide footer actions in Popup v2 to keep it clean, 
+    // or just leave them for power users who don't want to open dashboard.
+    // I will leave them as is for now.
 
-    const grouped = groupPinsByProduct(pins);
+    const grouped = groupPinsByProduct(displayPins);
     let html = '';
 
     for (const product of ['claude', 'chatgpt', 'gemini']) {
@@ -106,33 +126,39 @@
 
     listEl.innerHTML = html;
 
-    // Attach event listeners
+    // Attach listeners
     listEl.querySelectorAll('.pin-item').forEach(el => {
-      el.addEventListener('click', (e) => {
+      el.onclick = (e) => {
         if (!e.target.closest('.pin-delete')) {
           handlePinClick(el.dataset.pinId);
         }
-      });
+      };
     });
 
     listEl.querySelectorAll('.pin-delete').forEach(el => {
-      el.addEventListener('click', (e) => {
+      el.onclick = (e) => {
         e.stopPropagation();
         handlePinDelete(el.dataset.pinId, el.dataset.product, el.dataset.chatId);
-      });
+      };
     });
   }
 
   function renderPinItem(pin) {
-    const label = pin.label || `Response #${pin.responseIndex + 1}`;
+    const label = pin.label || pin.chatTitle || `Response #${pin.responseIndex + 1}`;
     const timeAgo = formatTimeAgo(pin.createdAt);
 
+    // Show chat title as secondary text if label exists
+    let metaText = timeAgo;
+    if (pin.label && pin.chatTitle) {
+      metaText = `${pin.chatTitle} • ${timeAgo}`;
+    }
+
     return `
-      <div class="pin-item" data-pin-id="${pin.id}">
+      <div class="pin-item" data-pin-id="${pin.id}" data-product="${pin.product}" data-chat-id="${pin.chatId}">
         <span class="pin-number">#${pin.pinNumber}</span>
         <div class="pin-info">
           <div class="pin-label">${escapeHtml(label)}</div>
-          <div class="pin-meta">${timeAgo}</div>
+          <div class="pin-meta">${escapeHtml(metaText)}</div>
         </div>
         <button class="pin-delete"
                 data-pin-id="${pin.id}"
@@ -153,176 +179,19 @@
   // ============================================
 
   async function handlePinClick(pinId) {
-    const allPins = await loadAllPins();
-    const pins = flattenPins(allPins);
-    const pin = pins.find(p => p.id === pinId);
-
+    const pin = allPins.find(p => p.id === pinId);
     if (pin) {
-      // Navigate to the pin
       chrome.runtime.sendMessage({
         type: 'NAVIGATE_TO_PIN',
         pin: pin
       });
-
-      // Close popup
       window.close();
     }
   }
 
   async function handlePinDelete(pinId, product, chatId) {
-    const allPins = await loadAllPins();
-
-    if (allPins[product]?.[chatId]) {
-      allPins[product][chatId] = allPins[product][chatId].filter(p => p.id !== pinId);
-
-      // Clean up empty entries
-      if (allPins[product][chatId].length === 0) {
-        delete allPins[product][chatId];
-      }
-
-      await chrome.storage.local.set({ pins: allPins });
-
-      // Re-render
-      const pins = flattenPins(allPins);
-      renderPins(pins);
-    }
-  }
-
-  async function handleClearAll() {
-    if (confirm('Delete all pins? This cannot be undone.')) {
-      await chrome.storage.local.set({
-        pins: { claude: {}, chatgpt: {}, gemini: {} }
-      });
-      renderPins([]);
-    }
-  }
-
-  async function handleExport() {
-    const allPins = await loadAllPins();
-    const pins = flattenPins(allPins);
-
-    if (pins.length === 0) {
-      alert('No pins to export.');
-      return;
-    }
-
-    const exportData = {
-      version: '1.0',
-      exportedAt: new Date().toISOString(),
-      pins: allPins
-    };
-
-    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `aichatanchor-pins-${new Date().toISOString().split('T')[0]}.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  }
-
-  function handleImportClick() {
-    document.getElementById('import-file').click();
-  }
-
-  async function handleImportFile(event) {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    try {
-      const text = await file.text();
-      const data = JSON.parse(text);
-
-      // Validate structure
-      if (!data.pins || typeof data.pins !== 'object') {
-        throw new Error('Invalid file format: missing pins data');
-      }
-
-      // Validate pins structure
-      const validProducts = ['claude', 'chatgpt', 'gemini'];
-      for (const product of validProducts) {
-        if (data.pins[product] && typeof data.pins[product] !== 'object') {
-          throw new Error(`Invalid file format: invalid ${product} data`);
-        }
-      }
-
-      // Ask user how to handle import
-      const currentPins = await loadAllPins();
-      const currentCount = flattenPins(currentPins).length;
-      const importCount = flattenPins(data.pins).length;
-
-      let shouldMerge = false;
-      if (currentCount > 0) {
-        shouldMerge = confirm(
-          `You have ${currentCount} existing pin(s). Import ${importCount} pin(s)?\n\n` +
-          `Click OK to merge (keep both), or Cancel to replace all.`
-        );
-
-        if (!shouldMerge) {
-          const confirmReplace = confirm('Replace all existing pins? This cannot be undone.');
-          if (!confirmReplace) {
-            event.target.value = '';
-            return;
-          }
-        }
-      }
-
-      // Merge or replace
-      let newPins;
-      if (shouldMerge) {
-        newPins = mergePins(currentPins, data.pins);
-      } else {
-        newPins = {
-          claude: data.pins.claude || {},
-          chatgpt: data.pins.chatgpt || {},
-          gemini: data.pins.gemini || {}
-        };
-      }
-
-      await chrome.storage.local.set({ pins: newPins });
-
-      const finalCount = flattenPins(newPins).length;
-      alert(`Successfully imported! You now have ${finalCount} pin(s).`);
-
-      const pins = flattenPins(newPins);
-      renderPins(pins);
-    } catch (e) {
-      alert(`Import failed: ${e.message}`);
-    }
-
-    // Reset file input
-    event.target.value = '';
-  }
-
-  function mergePins(existing, imported) {
-    const merged = {
-      claude: { ...existing.claude },
-      chatgpt: { ...existing.chatgpt },
-      gemini: { ...existing.gemini }
-    };
-
-    for (const product of ['claude', 'chatgpt', 'gemini']) {
-      const importedProduct = imported[product] || {};
-
-      for (const chatId in importedProduct) {
-        if (!merged[product][chatId]) {
-          merged[product][chatId] = [];
-        }
-
-        const existingIds = new Set(merged[product][chatId].map(p => p.id));
-
-        for (const pin of importedProduct[chatId]) {
-          if (!existingIds.has(pin.id)) {
-            merged[product][chatId].push(pin);
-          }
-        }
-      }
-    }
-
-    return merged;
+    await window.PinStorage.deletePin(product, chatId, pinId);
+    await loadData();
   }
 
   // ============================================
@@ -331,16 +200,14 @@
 
   function formatTimeAgo(timestamp) {
     const seconds = Math.floor((Date.now() - timestamp) / 1000);
-
     if (seconds < 60) return 'Just now';
     if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
     if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
-    if (seconds < 604800) return `${Math.floor(seconds / 86400)}d ago`;
-
     return new Date(timestamp).toLocaleDateString();
   }
 
   function escapeHtml(text) {
+    if (!text) return '';
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
@@ -350,27 +217,36 @@
   // INITIALIZATION
   // ============================================
 
-  async function init() {
-    const allPins = await loadAllPins();
-    const pins = flattenPins(allPins);
-    renderPins(pins);
+  function init() {
+    loadData();
 
-    // Set up footer buttons
-    document.getElementById('clear-all').addEventListener('click', handleClearAll);
-    document.getElementById('export-pins').addEventListener('click', handleExport);
-    document.getElementById('import-pins').addEventListener('click', handleImportClick);
-    document.getElementById('import-file').addEventListener('change', handleImportFile);
+    // Search input
+    document.getElementById('quick-search').addEventListener('input', (e) => {
+      searchQuery = e.target.value.trim();
+      renderPins();
+    });
 
-    // Listen for storage changes
+    // Dashboard button
+    document.getElementById('open-dashboard').addEventListener('click', () => {
+      chrome.tabs.create({ url: 'pages/dashboard.html' });
+    });
+
+    // Existing Footer buttons (Keep them working via PinStorage/logic)
+    document.getElementById('clear-all').addEventListener('click', async () => {
+      if (confirm('Delete all pins? This cannot be undone.')) {
+        await chrome.storage.local.set({ pins: {} });
+        loadData();
+      }
+    });
+
+    // Storage listener
     chrome.storage.onChanged.addListener((changes) => {
       if (changes.pins) {
-        const pins = flattenPins(changes.pins.newValue || { claude: {}, chatgpt: {}, gemini: {} });
-        renderPins(pins);
+        loadData();
       }
     });
   }
 
-  // Start
   document.addEventListener('DOMContentLoaded', init);
 
 })();

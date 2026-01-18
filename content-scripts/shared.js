@@ -3,20 +3,20 @@
  * Common functionality for pin creation, storage, and UI across all LLM sites
  */
 
-const PinNavigator = (function() {
+const PinNavigator = (function () {
   'use strict';
 
   // ============================================
   // UTILITIES
   // ============================================
-  
+
   function generateId() {
     return 'pin_' + Date.now().toString(36) + '_' + Math.random().toString(36).substr(2, 9);
   }
 
   function debounce(fn, delay) {
     let timeoutId;
-    return function(...args) {
+    return function (...args) {
       clearTimeout(timeoutId);
       timeoutId = setTimeout(() => fn.apply(this, args), delay);
     };
@@ -26,57 +26,18 @@ const PinNavigator = (function() {
   // STORAGE LAYER
   // ============================================
 
-  const Storage = {
-    async getAll() {
-      const result = await chrome.storage.local.get('pins');
-      return result.pins || { claude: {}, chatgpt: {}, gemini: {} };
-    },
+  // ============================================
+  // STORAGE LAYER
+  // ============================================
 
-    async getPinsForChat(product, chatId) {
-      const allPins = await this.getAll();
-      return allPins[product]?.[chatId] || [];
-    },
-
-    async savePin(pin) {
-      const allPins = await this.getAll();
-      
-      if (!allPins[pin.product]) {
-        allPins[pin.product] = {};
-      }
-      if (!allPins[pin.product][pin.chatId]) {
-        allPins[pin.product][pin.chatId] = [];
-      }
-      
-      allPins[pin.product][pin.chatId].push(pin);
-      await chrome.storage.local.set({ pins: allPins });
-      return pin;
-    },
-
-    async deletePin(product, chatId, pinId) {
-      const allPins = await this.getAll();
-      
-      if (allPins[product]?.[chatId]) {
-        allPins[product][chatId] = allPins[product][chatId].filter(p => p.id !== pinId);
-        
-        // Clean up empty chat entries
-        if (allPins[product][chatId].length === 0) {
-          delete allPins[product][chatId];
-        }
-        
-        await chrome.storage.local.set({ pins: allPins });
-      }
-    },
-
-    async getNextPinNumber(product, chatId) {
-      const pins = await this.getPinsForChat(product, chatId);
-      if (pins.length === 0) return 1;
-      return Math.max(...pins.map(p => p.pinNumber)) + 1;
-    },
-
-    async isPinned(product, chatId, responseIndex) {
-      const pins = await this.getPinsForChat(product, chatId);
-      return pins.find(p => p.responseIndex === responseIndex);
-    }
+  // Use the shared PinStorage module if available, otherwise fallback (should not happen if manifest is correct)
+  const Storage = window.PinStorage || {
+    async getAll() { return { claude: {}, chatgpt: {}, gemini: {} }; },
+    async getPinsForChat() { return []; },
+    async savePin() { },
+    async deletePin() { },
+    async getNextPinNumber() { return 1; },
+    async isPinned() { return null; }
   };
 
   // ============================================
@@ -134,7 +95,7 @@ const PinNavigator = (function() {
     const responseIndex = parseInt(button.getAttribute('data-response-index'), 10);
     const chatId = siteConfig.extractChatId(window.location.href);
     const existingPin = await Storage.isPinned(siteConfig.product, chatId, responseIndex);
-    
+
     if (existingPin) {
       button.classList.add('llm-pin-button--pinned');
       button.querySelector('.llm-pin-number').textContent = `#${existingPin.pinNumber}`;
@@ -217,7 +178,7 @@ const PinNavigator = (function() {
 
     // Position near button
     button.parentElement.appendChild(container);
-    
+
     // Focus input
     requestAnimationFrame(() => input.focus());
 
@@ -240,7 +201,7 @@ const PinNavigator = (function() {
 
     // Show label input
     button.classList.add('llm-pin-button--active');
-    
+
     createLabelInput(
       button,
       async (label) => {
@@ -261,6 +222,8 @@ const PinNavigator = (function() {
     const pinId = generateId();
     const pinNumber = await Storage.getNextPinNumber(siteConfig.product, chatId);
 
+    const chatTitle = siteConfig.getChatTitle ? siteConfig.getChatTitle() : document.title;
+
     // Inject anchor attribute for reliable scroll-back
     const anchorId = `llm-pin-anchor-${pinId}`;
     responseElement.setAttribute('data-pin-id', anchorId);
@@ -269,16 +232,19 @@ const PinNavigator = (function() {
       id: pinId,
       chatId: chatId,
       chatUrl: chatUrl,
+      chatTitle: chatTitle,
       product: siteConfig.product,
       pinNumber: pinNumber,
       label: label,
+      tags: [], // New field for tags
+      description: null, // New field for description
       anchorSelector: `[data-pin-id="${anchorId}"]`,
       responseIndex: responseIndex,
       createdAt: Date.now()
     };
 
     await Storage.savePin(pin);
-    
+
     // Notify background script
     chrome.runtime.sendMessage({ type: 'PIN_CREATED', pin });
 
@@ -302,9 +268,9 @@ const PinNavigator = (function() {
         <span class="llm-pin-info-label">${pin.label || 'Unlabeled'}</span>
       </div>
     `;
-    
+
     button.parentElement.appendChild(info);
-    
+
     setTimeout(() => info.remove(), 2000);
   }
 
@@ -326,14 +292,14 @@ const PinNavigator = (function() {
     // Watch for new content
     const observer = new MutationObserver((mutations) => {
       let shouldProcess = false;
-      
+
       for (const mutation of mutations) {
         if (mutation.addedNodes.length > 0) {
           shouldProcess = true;
           break;
         }
       }
-      
+
       if (shouldProcess) {
         processResponses();
       }
@@ -364,7 +330,7 @@ const PinNavigator = (function() {
   async function scrollToPin(pin, siteConfig) {
     // Try anchor selector first
     let element = document.querySelector(pin.anchorSelector);
-    
+
     // Fallback to response index
     if (!element) {
       const responses = siteConfig.getResponseElements();
@@ -374,10 +340,10 @@ const PinNavigator = (function() {
     if (element) {
       // Highlight briefly
       element.classList.add('llm-pin-highlight');
-      
-      element.scrollIntoView({ 
-        behavior: 'smooth', 
-        block: 'center' 
+
+      element.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center'
       });
 
       setTimeout(() => {

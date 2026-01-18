@@ -3,7 +3,7 @@
  * Site-specific selectors and logic for chat.openai.com and chatgpt.com
  */
 
-(function() {
+(function () {
   'use strict';
 
   // Wait for shared module to load
@@ -15,7 +15,7 @@
   // ============================================
   // CHATGPT SELECTORS
   // ============================================
-  
+
   // These selectors target ChatGPT's assistant response elements
   // ChatGPT uses obfuscated class names that change frequently
   const SELECTORS = {
@@ -30,7 +30,7 @@
       '.markdown.prose',
       '[class*="message"]:has(.markdown)'
     ].join(', '),
-    
+
     // Container that holds all messages
     conversationContainer: [
       '[class*="react-scroll-to-bottom"]',
@@ -65,7 +65,7 @@
       try {
         const urlObj = new URL(url);
         const pathParts = urlObj.pathname.split('/').filter(Boolean);
-        
+
         // Look for conversation ID patterns
         // /c/{id} or /chat/{id}
         for (let i = 0; i < pathParts.length; i++) {
@@ -75,19 +75,37 @@
             }
           }
         }
-        
+
         // Check for share links: /share/{id}
         const shareIndex = pathParts.indexOf('share');
         if (shareIndex !== -1 && pathParts[shareIndex + 1]) {
           return 'share_' + pathParts[shareIndex + 1];
         }
-        
+
         // Fallback: use full path
         return urlObj.pathname.replace(/\//g, '_') || 'unknown';
       } catch (e) {
         console.error('[AI Chat Anchor] Error extracting chat ID:', e);
         return 'unknown';
       }
+    },
+
+    /**
+     * Get the chat title from the page
+     */
+    getChatTitle() {
+      // Try specific title element in sidebar or header
+      const titleEl = document.querySelector('nav a[class*="bg-token-sidebar-surface-tertiary"] .overflow-hidden');
+      if (titleEl && titleEl.textContent) {
+        return titleEl.textContent.trim();
+      }
+
+      // Fallback to document title
+      let title = document.title;
+      title = title.replace(/ - ChatGPT$/, '').trim();
+
+      if (title === 'ChatGPT') return 'Untitled Chat';
+      return title;
     },
 
     /**
@@ -107,8 +125,8 @@
         // Find the parent message container for each
         primaryElements.forEach((el, idx) => {
           const container = el.closest('[class*="group"]') ||
-                           el.closest('[data-testid*="conversation-turn"]') ||
-                           el;
+            el.closest('[data-testid*="conversation-turn"]') ||
+            el;
           console.log(`[AI Chat Anchor] Element ${idx}: closest group =`, el.closest('[class*="group"]'), 'closest testid =', el.closest('[data-testid*="conversation-turn"]'));
           if (!elements.includes(container)) {
             elements.push(container);
@@ -120,7 +138,7 @@
 
       // Try other selector patterns
       const selectorParts = SELECTORS.responseContainer.split(', ');
-      
+
       for (const selector of selectorParts) {
         try {
           const found = document.querySelectorAll(selector);
@@ -158,12 +176,12 @@
       if (element.getAttribute('data-message-author-role') === 'user') {
         return true;
       }
-      
+
       // Check for user indicators in class/attributes
-      const text = element.className + ' ' + 
-                   (element.getAttribute('data-testid') || '') +
-                   (element.getAttribute('data-message-author-role') || '');
-      
+      const text = element.className + ' ' +
+        (element.getAttribute('data-testid') || '') +
+        (element.getAttribute('data-message-author-role') || '');
+
       return text.toLowerCase().includes('user');
     },
 
@@ -172,18 +190,18 @@
      */
     getResponsesByStructure() {
       const responses = [];
-      
+
       const container = document.querySelector(SELECTORS.conversationContainer);
       if (!container) return responses;
 
       // Find all conversation turns
       const turns = container.querySelectorAll('[class*="group"], [class*="turn"]');
-      
+
       turns.forEach((turn, index) => {
         // Check if this turn contains assistant content
         const hasAssistantRole = turn.querySelector('[data-message-author-role="assistant"]');
         const hasMarkdown = turn.querySelector('.markdown, .prose');
-        
+
         if (hasAssistantRole || (index % 2 === 1 && hasMarkdown)) {
           if (!this.isUserMessage(turn)) {
             responses.push(turn);
@@ -203,9 +221,9 @@
       if (actionsArea) return actionsArea;
 
       // Look for the message content area to position relative to
-      const contentArea = responseElement.querySelector('.markdown') || 
-                         responseElement.querySelector('[class*="message-content"]');
-      
+      const contentArea = responseElement.querySelector('.markdown') ||
+        responseElement.querySelector('[class*="message-content"]');
+
       if (contentArea) {
         let wrapper = contentArea.parentElement.querySelector('.llm-pin-button-wrapper');
         if (!wrapper) {
@@ -225,7 +243,7 @@
         responseElement.style.position = 'relative';
         responseElement.appendChild(wrapper);
       }
-      
+
       return wrapper;
     }
   };
@@ -237,9 +255,9 @@
   function isChatGPTChatPage() {
     const hostname = window.location.hostname;
     const isChatGPTDomain = hostname === 'chat.openai.com' || hostname === 'chatgpt.com';
-    const hasConversation = window.location.pathname.includes('/c/') || 
-                           window.location.pathname.includes('/chat/');
-    
+    const hasConversation = window.location.pathname.includes('/c/') ||
+      window.location.pathname.includes('/chat/');
+
     return isChatGPTDomain && (hasConversation || window.location.pathname === '/');
   }
 
@@ -253,7 +271,7 @@
 
     // Watch for SPA navigation
     let lastUrl = window.location.href;
-    
+
     const urlObserver = new MutationObserver(() => {
       if (window.location.href !== lastUrl) {
         lastUrl = window.location.href;

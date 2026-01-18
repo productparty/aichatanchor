@@ -3,7 +3,7 @@
  * Site-specific selectors and logic for claude.ai
  */
 
-(function() {
+(function () {
   'use strict';
 
   // Wait for shared module to load
@@ -80,6 +80,24 @@
         console.error('[AI Chat Anchor] Error extracting chat ID:', e);
         return 'unknown';
       }
+    },
+
+    /**
+     * Get the chat title from the page
+     */
+    getChatTitle() {
+      // Try DOM first for most accurate current title
+      const titleEl = document.querySelector('h2.font-tiiempos, [data-testid="chat-title"]');
+      if (titleEl && titleEl.textContent) {
+        return titleEl.textContent.trim();
+      }
+
+      // Fallback to document title
+      let title = document.title;
+      title = title.replace(/ - Claude$/, '').trim();
+
+      if (title === 'Claude') return 'Untitled Chat';
+      return title;
     },
 
     /**

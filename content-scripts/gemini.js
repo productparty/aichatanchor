@@ -3,7 +3,7 @@
  * Site-specific selectors and logic for gemini.google.com
  */
 
-(function() {
+(function () {
   'use strict';
 
   // Wait for shared module to load
@@ -15,7 +15,7 @@
   // ============================================
   // GEMINI SELECTORS
   // ============================================
-  
+
   // These selectors target Gemini's assistant response elements
   // Gemini was redesigned in late 2025, selectors may need updates
   const SELECTORS = {
@@ -34,7 +34,7 @@
       'message-content[class*="model"]',
       '.response-content'
     ].join(', '),
-    
+
     // Container that holds all messages
     conversationContainer: [
       '[class*="conversation-container"]',
@@ -70,10 +70,10 @@
       try {
         const urlObj = new URL(url);
         const pathParts = urlObj.pathname.split('/').filter(Boolean);
-        
+
         // Look for known path patterns
         const idPrefixes = ['app', 'share', 'chat', 'c'];
-        
+
         for (let i = 0; i < pathParts.length; i++) {
           if (idPrefixes.includes(pathParts[i]) && pathParts[i + 1]) {
             return pathParts[i + 1];
@@ -81,19 +81,39 @@
         }
 
         // Check URL parameters
-        const chatParam = urlObj.searchParams.get('chat') || 
-                         urlObj.searchParams.get('id') ||
-                         urlObj.searchParams.get('c');
+        const chatParam = urlObj.searchParams.get('chat') ||
+          urlObj.searchParams.get('id') ||
+          urlObj.searchParams.get('c');
         if (chatParam) {
           return chatParam;
         }
-        
+
         // Fallback: hash the pathname for a stable ID
         return this.hashString(urlObj.pathname) || 'gemini_session';
       } catch (e) {
         console.error('[AI Chat Anchor] Error extracting chat ID:', e);
         return 'unknown';
       }
+    },
+
+    /**
+     * Get the chat title from the page
+     */
+    getChatTitle() {
+      let title = document.title;
+
+      // Clean up title
+      if (title.endsWith('Gemini')) {
+        title = title.replace(/ - Gemini$/, '');
+      }
+
+      // Remove notification count if present: "(1) Title"
+      title = title.replace(/^\(\d+\)\s+/, '');
+
+      title = title.trim();
+
+      if (!title || title === 'Gemini') return 'Untitled Chat';
+      return title;
     },
 
     /**
@@ -133,7 +153,7 @@
 
       // Try selector patterns
       const selectorParts = SELECTORS.responseContainer.split(', ');
-      
+
       for (const selector of selectorParts) {
         try {
           const found = document.querySelectorAll(selector);
@@ -168,10 +188,10 @@
       }
 
       // Check attributes and classes
-      const text = element.className + ' ' + 
-                   (element.getAttribute('data-role') || '') +
-                   (element.getAttribute('role') || '');
-      
+      const text = element.className + ' ' +
+        (element.getAttribute('data-role') || '') +
+        (element.getAttribute('role') || '');
+
       const userPatterns = ['user', 'human', 'query', 'prompt'];
       return userPatterns.some(pattern => text.toLowerCase().includes(pattern));
     },
@@ -181,7 +201,7 @@
      */
     getResponsesByStructure() {
       const responses = [];
-      
+
       const container = document.querySelector(SELECTORS.conversationContainer);
       if (!container) return responses;
 
@@ -189,16 +209,16 @@
       const allMessages = container.querySelectorAll(
         '[class*="message"], [class*="turn"], [class*="content"], [role="article"]'
       );
-      
+
       // Filter for likely model responses
       allMessages.forEach((el, index) => {
         // Skip if too small to be a real response
         if (el.textContent?.length < 20) return;
-        
+
         // Check for response indicators
         const hasFormatting = el.querySelector('p, ul, ol, pre, code, table');
         const isEvenIndex = index % 2 === 1; // Alternating pattern
-        
+
         if ((hasFormatting || isEvenIndex) && !this.isUserMessage(el)) {
           // Avoid duplicates from nested elements
           const isNested = responses.some(r => r.contains(el) || el.contains(r));
@@ -249,7 +269,7 @@
 
     // Watch for SPA navigation
     let lastUrl = window.location.href;
-    
+
     const urlObserver = new MutationObserver(() => {
       if (window.location.href !== lastUrl) {
         lastUrl = window.location.href;
