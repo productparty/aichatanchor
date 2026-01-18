@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Chat Anchor - Dashboard</title>
+  <link rel="stylesheet" href="dashboard.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <svg class="logo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="5" r="3"/>
+          <line x1="12" y1="8" x2="12" y2="20"/>
+        </svg>
+        <h1>AI Chat Anchor</h1>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-section">
+          <div class="nav-label">Library</div>
+          <button class="nav-item active" data-filter="all">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+            All Pins
+          </button>
+        </div>
+
+        <div class="nav-section">
+          <div class="nav-label">Source</div>
+          <button class="nav-item" data-filter="claude">
+            <span class="nav-icon-text">C</span> Claude
+          </button>
+          <button class="nav-item" data-filter="chatgpt">
+            <span class="nav-icon-text">G</span> ChatGPT
+          </button>
+          <button class="nav-item" data-filter="gemini">
+            <span class="nav-icon-text">gem</span> Gemini
+          </button>
+        </div>
+
+        <div class="nav-section">
+          <div class="nav-label">Time</div>
+          <button class="nav-item active" data-filter="allTime">All Time</button>
+          <button class="nav-item" data-filter="today">Today</button>
+          <button class="nav-item" data-filter="yesterday">Yesterday</button>
+          <button class="nav-item" data-filter="week">Last 7 Days</button>
+          <button class="nav-item" data-filter="month">This Month</button>
+          <button class="nav-item" data-filter="lastMonth">Last Month</button>
+          <button class="nav-item" data-filter="year">This Year</button>
+        </div>
+
+        <div class="nav-section">
+          <div class="nav-label">Tags</div>
+          <div id="tags-container" class="tags-container">
+            <!-- Tags populated dynamically -->
+          </div>
+        </div>
+      </nav>
+      
+      <div class="sidebar-footer">
+        <div class="sidebar-footer-actions">
+          <button id="refresh-data" class="btn-sidebar-action" title="Refresh Data">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+          </button>
+          <button id="export-data" class="btn-sidebar-action" title="Export JSON">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          </button>
+        </div>
+        <div class="sidebar-attribution">
+          Built with <span class="heart">♥</span> by Mike Watson<br>
+          <span class="attribution-link">@ Product Party</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+      <header class="main-header">
+        <div class="search-bar">
+          <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"/>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+          <input type="text" id="global-search" placeholder="Search pins, labels, or chat titles...">
+        </div>
+        <div class="header-controls">
+          <div class="sort-control">
+            <label for="sort-select" class="sort-label">Sort:</label>
+            <select id="sort-select" class="sort-select">
+              <option value="newest">Newest First</option>
+              <option value="oldest">Oldest First</option>
+              <option value="titleAsc">Title (A-Z)</option>
+              <option value="titleDesc">Title (Z-A)</option>
+            </select>
+          </div>
+          <div class="view-controls">
+            <button class="btn-icon active" id="view-grid" title="Grid View">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+            </button>
+            <button class="btn-icon" id="view-list" title="List View">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+            </button>
+          </div>
+        </div>
+      </header>
+      
+      <div id="pins-grid" class="pins-grid">
+        <!-- Pins populated here -->
+      </div>
+      
+      <div id="empty-state" class="empty-state hidden">
+        <div class="empty-icon-large">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M16 16s-1.5-2-4-2-4 2-4 2"/>
+            <line x1="9" y1="9" x2="9.01" y2="9"/>
+            <line x1="15" y1="9" x2="15.01" y2="9"/>
+          </svg>
+        </div>
+        <h2>No pins found</h2>
+        <p>Try adjusting your search or filters.</p>
+      </div>
+    </main>
+
+    <!-- RIGHT PANEL (DETAILS) -->
+    <aside id="detail-panel" class="detail-panel hidden">
+      <div class="detail-header">
+        <h2>Pin Details</h2>
+        <button id="close-detail" class="btn-icon-plain">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      
+      <div class="detail-content" id="detail-content-form">
+        <!-- Form injected here -->
+      </div>
+    </aside>
+  </div>
+
+  <script src="../scripts/storage.js"></script>
+  <script src="dashboard.js"></script>
+</body>
+</html>
