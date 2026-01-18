@@ -33,6 +33,8 @@ jobs:
           cp -r popup release/aichatanchor/
           cp -r styles release/aichatanchor/
           cp -r icons release/aichatanchor/
+          cp -r scripts release/aichatanchor/
+          cp -r pages release/aichatanchor/
 
           # Create ZIP
           cd release
