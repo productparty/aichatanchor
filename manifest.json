@@ -1,8 +1,8 @@
 {
     "manifest_version":  3,
     "name":  "Bookmark ChatGPT - Pin AI Responses",
-    "version":  "1.0.5",
-    "description":  "Bookmark ChatGPT, Claude, and Gemini responses. Pin important AI messages, add labels, and jump back to saved responses instantly. 100% local.",
+    "version":  "1.0.6",
+    "description":  "Bookmark ChatGPT, Claude & Gemini responses. Pin AI messages, add labels, and jump back to saved responses instantly. 100% local.",
     "permissions":  [
                         "storage",
                         "activeTab",
