@@ -1,6 +1,6 @@
-# AI Chat Anchor
+# Bookmark ChatGPT Responses - Pin & Save AI Chat | Claude, Gemini
 
-A browser extension that lets you bookmark specific responses in AI chat conversations and jump back to them instantly.
+Bookmark ChatGPT responses and pin important AI chat messages. Jump back to any saved response instantly. Works with Claude and Gemini too.
 
 ## The Problem
 
@@ -15,22 +15,23 @@ None of these are great. The irony of option 3 is real—you're burning time or 
 
 ## The Solution
 
-AI Chat Anchor adds a simple pin button to AI responses. Click it, optionally add a label, and you've got a bookmark. All your pins are stored locally and accessible from the extension popup, organized by chat and product. Click any pin to jump right back to that moment in the conversation.
+Stop scrolling through long AI conversations looking for that one answer you need. Pin any response with one click, add an optional label, and find it later in your bookmark library.
+
+Hover over any AI response to see the pin button. Click to bookmark it. Open the extension popup to browse all your saved responses. Click any pin to jump right back.
 
 **Key principles:**
-- **Anchors, not archives** — Pins mark locations, they don't store content
-- **Fully local** — Nothing leaves your browser. No accounts, no cloud, no tracking
-- **Works across products** — One inventory for Claude, ChatGPT, and Gemini
+- **Privacy first** — All bookmarks stay in your browser. Nothing is uploaded, tracked, or shared
+- **100% local** — No cloud, no account, no data collection
+- **Works across platforms** — One library for ChatGPT, Claude, and Gemini
 
 ## Features
 
-- **Pin any AI response** with one click
-- **Optional labels** to remind yourself why it matters
-- **Auto-numbered** pins per conversation (#1, #2, #3...)
-- **Inventory popup** showing all pins grouped by product and chat
-- **Jump to pin** — Opens the chat and scrolls right to that response
-- **Export/Import** — Back up your pins as JSON (no cloud needed)
-- **Privacy-first** — All data stays in your browser's local storage
+- **Pin any AI response** in ChatGPT, Claude, or Gemini
+- **Add labels** to organize your saved messages
+- **Jump directly** to bookmarked responses with one click
+- **Filter pins** by source, time, or tags
+- **Export and import** your bookmarks as JSON
+- **100% local** — no cloud, no account, no data collection
 
 ## Supported Platforms
 

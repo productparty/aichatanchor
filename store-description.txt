@@ -1,0 +1,35 @@
+Chrome Web Store Listing
+========================
+
+TITLE (Extension Name):
+Bookmark ChatGPT Responses - Pin & Save AI Chat | Claude, Gemini
+
+SHORT TITLE (45 char limit for manifest.json):
+Bookmark ChatGPT - Pin AI Responses
+
+SUMMARY (Short Description, 132 char max):
+Bookmark ChatGPT, Claude, and Gemini responses. Pin important AI messages, add labels, and jump back to saved responses instantly. 100% local.
+
+DESCRIPTION (Full Description):
+Bookmark ChatGPT responses and pin important AI chat messages. Jump back to any saved response instantly. Works with Claude and Gemini too.
+
+Stop scrolling through long AI conversations looking for that one answer you need. Pin any response with one click, add an optional label, and find it later in your bookmark library.
+
+Features:
+- Pin any AI response in ChatGPT, Claude, or Gemini
+- Add labels to organize your saved messages
+- Jump directly to bookmarked responses with one click
+- Filter pins by source, time, or tags
+- Export and import your bookmarks as JSON
+- 100% local - no cloud, no account, no data collection
+
+How it works:
+Hover over any AI response to see the pin button. Click to bookmark it. Open the extension popup to browse all your saved responses. Click any pin to jump right back.
+
+Privacy first:
+All bookmarks stay in your browser. Nothing is uploaded, tracked, or shared. Your conversations remain private.
+
+Supported platforms:
+- ChatGPT (chat.openai.com, chatgpt.com)
+- Claude (claude.ai)
+- Google Gemini (gemini.google.com)
